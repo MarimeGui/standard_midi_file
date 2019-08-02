@@ -19,6 +19,7 @@ pub fn calc_vlv_length(value: u32) -> Result<u8> {
 }
 
 /// Represents a VLV
+#[derive(Copy, Clone)]
 pub struct VLV {
     /// The value represented by this VLV
     pub value: u32,
