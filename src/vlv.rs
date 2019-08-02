@@ -54,7 +54,7 @@ impl VLV {
     }
 
     /// Writes a VLV to a file
-    pub fn export<W: Write>(&self, writer: &mut W) -> Result<()> {
+    pub fn export<W: Write>(self, writer: &mut W) -> Result<()> {
         // Calc real length
         let real_length = calc_vlv_length(self.value)?;
 
