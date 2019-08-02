@@ -1,3 +1,5 @@
+use ez_io::error::MagicNumberCheckError;
+
 /// Error type thrown when something goes wrong.
 #[derive(Debug)]
 pub enum SMFError {
@@ -5,8 +7,14 @@ pub enum SMFError {
     IO(std::io::Error),
     /// Something went wrong with a VLV
     VLV(VLVError),
+    /// An expected magic number was not found
+    MagicNumber(MagicNumberCheckError),
+    /// If the header is different than 6 (ignored if is bigger than 6 while importing)
+    UnexpectedMThdLength(u32),
     /// Unknown Format in MThd
     UnknownFormat(u16),
+    /// Header reports 0 tracks
+    NoTracks,
 }
 
 impl std::fmt::Display for SMFError {
@@ -14,7 +22,12 @@ impl std::fmt::Display for SMFError {
         match self {
             SMFError::IO(ref e) => e.fmt(f),
             SMFError::VLV(ref e) => e.fmt(f),
+            SMFError::MagicNumber(ref e) => e.fmt(f),
+            SMFError::UnexpectedMThdLength(ref e) => {
+                write!(f, "MThd Header has unexpected size: {}", e)
+            }
             SMFError::UnknownFormat(ref e) => write!(f, "Found unknown format in MThd: {}", e),
+            SMFError::NoTracks => write!(f, "MThd chunk reports 0 tracks"),
         }
     }
 }
@@ -22,6 +35,12 @@ impl std::fmt::Display for SMFError {
 impl From<std::io::Error> for SMFError {
     fn from(e: std::io::Error) -> SMFError {
         SMFError::IO(e)
+    }
+}
+
+impl From<MagicNumberCheckError> for SMFError {
+    fn from(e: MagicNumberCheckError) -> SMFError {
+        SMFError::MagicNumber(e)
     }
 }
 

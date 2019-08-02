@@ -1,7 +1,7 @@
 use crate::error::SMFError;
 use crate::Result;
-use ez_io::{ReadE, WriteE};
-use std::io::{Read, Write};
+use ez_io::{MagicNumberCheck, ReadE, WriteE};
+use std::io::{Read, Seek, SeekFrom, Write};
 
 /// Contains the information found in a standard 6-byte MThd Header of a MIDI File.
 #[derive(Copy, Clone)]
@@ -13,18 +13,49 @@ pub struct SMFHeader {
     /// Number of tracks after the header
     pub nb_tracks: u16,
     /// Provides information on what the delta times represent
-    pub time_divisions: TimeScale,
+    pub time_division: TimeScale,
 }
 
 impl SMFHeader {
     /// Reads a MThd from a file.
-    pub fn import<R: Read>(reader: &mut R) -> Result<SMFHeader> {
-        unimplemented!();
+    pub fn import<R: Read + Seek>(reader: &mut R) -> Result<SMFHeader> {
+        reader.check_magic_number(&[b'M', b'T', b'r', b'k'])?;
+        let length = reader.read_be_to_u32()?;
+        if length < 6 {
+            return Err(SMFError::UnexpectedMThdLength(length));
+        }
+        let format = Format::import(reader)?;
+        let nb_tracks = reader.read_be_to_u16()?;
+        if nb_tracks == 0 {
+            return Err(SMFError::NoTracks);
+        }
+        let time_division = TimeScale::import(reader)?;
+        if length > 6 {
+            // Skip unknown data.
+            reader.seek(SeekFrom::Current(i64::from(length - 6)))?;
+        }
+        Ok(SMFHeader {
+            length,
+            format,
+            nb_tracks,
+            time_division,
+        })
     }
 
     /// Exports the MThd as binary data.
     pub fn export<W: Write>(&self, writer: &mut W) -> Result<()> {
-        unimplemented!();
+        writer.write_all(&[b'M', b'T', b'r', b'k'])?;
+        if self.length != 6 {
+            return Err(SMFError::UnexpectedMThdLength(self.length));
+        }
+        writer.write_be_to_u32(self.length)?;
+        self.format.export(writer)?;
+        if self.nb_tracks == 0 {
+            return Err(SMFError::NoTracks);
+        }
+        writer.write_be_to_u16(self.nb_tracks)?;
+        self.time_division.export(writer)?;
+        Ok(())
     }
 }
 

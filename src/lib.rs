@@ -15,7 +15,7 @@ pub mod track;
 pub mod vlv;
 
 use header::SMFHeader;
-use std::io::{Read, Write};
+use std::io::{Read, Seek, Write};
 use track::SMFTrack;
 
 /// The Primary type for this crate. This is the primary way to Import and Export MIDI Files and manipulate them.
@@ -29,7 +29,7 @@ pub struct SMF {
 
 impl SMF {
     /// Imports an entire MIDI File.
-    pub fn import<R: Read>(reader: &mut R) -> Result<SMF> {
+    pub fn import<R: Read + Seek>(reader: &mut R) -> Result<SMF> {
         let header = SMFHeader::import(reader)?;
         unimplemented!();
     }
