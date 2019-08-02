@@ -18,7 +18,8 @@ pub fn calc_vlv_length(value: u32) -> Result<u8> {
     })
 }
 
-/// Represents a VLV
+/// Represents a Variable Length Value. This is format that represents a number. The particularity of VLVs is that depending on the represented number, the VLV takes more or less space, from 1 to 4 bytes.
+/// The minimum value is 0 and the maximum is 2^28-1.
 #[derive(Copy, Clone)]
 pub struct VLV {
     /// The value represented by this VLV

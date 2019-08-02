@@ -6,14 +6,17 @@ use event::Event;
 use ez_io::{MagicNumberCheck, ReadE, WriteE};
 use std::io::{Read, Seek, SeekFrom, Write};
 
+/// A MTrk Track inside a MIDI File. This contains TrackEvents containing a Delta Time and an Event.
 #[derive(Clone)]
 pub struct SMFTrack {
     /// Size in bytes of this track
     pub length: u32,
+    /// The Track Events contained inside this track
     pub track_events: Vec<TrackEvent>,
 }
 
 impl SMFTrack {
+    /// Reads a MTrk chunk from a mIDI File
     pub fn import<R: Read + Seek>(reader: &mut R) -> Result<SMFTrack> {
         reader.check_magic_number(&[b'M', b'T', b'r', b'k'])?;
         let length = reader.read_be_to_u32()?;
@@ -50,18 +53,23 @@ impl SMFTrack {
         })
     }
 
+    /// Writes a MTrk chunk to a MIDI File
     pub fn export<W: Write>(&self, writer: &mut W) -> Result<()> {
         unimplemented!();
     }
 }
 
+/// The data inside of a MIDI Track.
 #[derive(Clone)]
 pub struct TrackEvent {
+    /// A Delta-Time indicates how much time this event should take place after the previous one, in ticks.
     pub delta_time: VLV,
+    /// The actual event, i.e. what happens at this moment
     pub event: Event,
 }
 
 impl TrackEvent {
+    /// Reads the Delta Time and the associated event.
     pub fn import<R: Read + Seek>(
         reader: &mut R,
         previous_code_byte: Option<u8>,
@@ -72,6 +80,8 @@ impl TrackEvent {
         let code_byte = stuff.1;
         Ok((TrackEvent { delta_time, event }, code_byte))
     }
+
+    /// Writes the Track Event.
     pub fn export<W: Write>(&self, writer: &mut W) -> Result<()> {
         unimplemented!();
     }
