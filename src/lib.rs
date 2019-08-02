@@ -27,10 +27,15 @@ pub struct SMF {
 
 impl SMF {
     pub fn import<R: Read>(reader: &mut R) -> Result<SMF> {
+        let header = SMFHeader::import(reader)?;
         unimplemented!();
     }
 
-    pub fn export<W: Write>(writer: &mut W) -> Result<()> {
-        unimplemented!();
+    pub fn export<W: Write>(&self, writer: &mut W) -> Result<()> {
+        self.header.export(writer)?;
+        for track in &self.tracks {
+            track.export(writer)?;
+        }
+        Ok(())
     }
 }

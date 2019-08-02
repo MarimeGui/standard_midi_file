@@ -11,7 +11,7 @@ impl SMFHeader {
         unimplemented!();
     }
 
-    pub fn export<W: Write>(writer: &mut W) -> Result<()> {
+    pub fn export<W: Write>(&self, writer: &mut W) -> Result<()> {
         unimplemented!();
     }
 }
