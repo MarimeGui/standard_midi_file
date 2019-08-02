@@ -19,7 +19,7 @@ pub struct SMFHeader {
 impl SMFHeader {
     /// Reads a MThd from a file.
     pub fn import<R: Read + Seek>(reader: &mut R) -> Result<SMFHeader> {
-        reader.check_magic_number(&[b'M', b'T', b'r', b'k'])?;
+        reader.check_magic_number(&[b'M', b'T', b'h', b'd'])?;
         let length = reader.read_be_to_u32()?;
         if length < 6 {
             return Err(SMFError::UnexpectedMThdLength(length));
@@ -44,7 +44,7 @@ impl SMFHeader {
 
     /// Exports the MThd as binary data.
     pub fn export<W: Write>(&self, writer: &mut W) -> Result<()> {
-        writer.write_all(&[b'M', b'T', b'r', b'k'])?;
+        writer.write_all(&[b'M', b'T', b'h', b'd'])?;
         if self.length != 6 {
             return Err(SMFError::UnexpectedMThdLength(self.length));
         }
