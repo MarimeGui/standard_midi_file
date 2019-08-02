@@ -29,7 +29,9 @@ fn imports() {
 #[test]
 fn partial_imports() {
     for (input, value) in TEST_VALUES.iter() {
-        let my_vlv = VLV::partial_import(&mut Cursor::new(&[input[1], input[2], input[3]]), input[0]).unwrap();
+        let my_vlv =
+            VLV::partial_import(&mut Cursor::new(&[input[1], input[2], input[3]]), input[0])
+                .unwrap();
         assert_eq!(my_vlv.value, *value);
     }
 }

@@ -14,10 +14,10 @@ pub mod track;
 /// Stuff for Reading/Creating VLVs
 pub mod vlv;
 
+use error::SMFError;
 use header::SMFHeader;
 use std::io::{Read, Seek, Write};
 use track::SMFTrack;
-use error::SMFError;
 
 /// The Primary type for this crate. This is the primary way to Import and Export MIDI Files and manipulate them.
 #[derive(Clone)]
@@ -36,16 +36,16 @@ impl SMF {
         for _ in 0..header.nb_tracks {
             tracks.push(SMFTrack::import(reader)?);
         }
-        Ok(SMF {
-            header,
-            tracks,
-        })
+        Ok(SMF { header, tracks })
     }
 
     /// Exports an entire MIDI File.
     pub fn export<W: Write>(&self, writer: &mut W) -> Result<()> {
         if self.header.nb_tracks as usize != self.tracks.len() {
-            return Err(SMFError::VecHeaderTracksMismatch(self.header.nb_tracks, self.tracks.len()))
+            return Err(SMFError::VecHeaderTracksMismatch(
+                self.header.nb_tracks,
+                self.tracks.len(),
+            ));
         }
         self.header.export(writer)?;
         for track in &self.tracks {
