@@ -17,6 +17,14 @@ pub enum SMFError {
     NoTracks,
     /// Reported number of tracks and real amount of tracks do not match
     VecHeaderTracksMismatch(u16, usize),
+    /// Tried to use Running Status on first event
+    NoPreviousEvent,
+    /// Unknown Event encountered
+    UnknownEvent(u8),
+    /// Non-standard Meta Event Length
+    UnexpectedMetaEventLength(u32),
+    /// In a KeySignature Meta Event, if the second byte (major or minor key) is not set to 0 or 1
+    KeySignatureUnknownKey(u8),
 }
 
 impl std::fmt::Display for SMFError {
@@ -30,7 +38,11 @@ impl std::fmt::Display for SMFError {
             }
             SMFError::UnknownFormat(ref e) => write!(f, "Found unknown format in MThd: {}", e),
             SMFError::NoTracks => write!(f, "MThd chunk reports 0 tracks"),
-            SMFError::VecHeaderTracksMismatch(ref e, ref g) => write!(f, "Amount of tracks reported in header and number of tracks in Vec do not match: Header {}, Vec: {}", e, g)
+            SMFError::VecHeaderTracksMismatch(ref e, ref g) => write!(f, "Amount of tracks reported in header and number of tracks in Vec do not match: Header {}, Vec: {}", e, g),
+            SMFError::NoPreviousEvent => write!(f, "Event is a Running Status, but no previous event"),
+            SMFError::UnknownEvent(ref e) => write!(f, "Encountered an Unknown Event while processing a track. Event Code Byte: {}", e),
+            SMFError::UnexpectedMetaEventLength(ref e) => write!(f, "A Meta Event with a defined length used a non-standard size. Length: {}", e),
+            SMFError::KeySignatureUnknownKey(ref e) => write!(f, "The specified key in a Key Signature Meta Event was not 0 or 1. Value: {}", e),
         }
     }
 }
