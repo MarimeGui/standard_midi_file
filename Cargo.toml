@@ -1,0 +1,10 @@
+[package]
+name = "standard_midi_file"
+version = "0.1.0"
+authors = ["MarimeGui <lepro.guillaume@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ez_io = { git = "https://github.com/MarimeGui/ez_io.git" }
