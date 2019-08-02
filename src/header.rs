@@ -41,7 +41,7 @@ pub enum Format {
 
 impl Format {
     /// Returns the corresponding value for a Format.
-    pub fn get_value(&self) -> u16 {
+    pub fn get_value(self) -> u16 {
         match self {
             Format::SingleTrack => 0,
             Format::MultipleTrack => 1,
@@ -60,7 +60,7 @@ impl Format {
     }
 
     /// Writes the u16 Format field in the header
-    pub fn export<W: Write>(&self, writer: &mut W) -> Result<()> {
+    pub fn export<W: Write>(self, writer: &mut W) -> Result<()> {
         writer.write_be_to_u16(self.get_value())?;
         Ok(())
     }
@@ -70,17 +70,23 @@ impl Format {
 #[derive(Copy, Clone)]
 pub enum TimeScale {
     TicksPerQuarterNote(u16),
-    SMPTECompatible(i8, u8)
+    SMPTECompatible(i8, u8),
 }
 
 impl TimeScale {
     /// Reads the 2-byte Division Information inside of MThd
     pub fn import<R: Read>(reader: &mut R) -> Result<TimeScale> {
         let data = reader.read_be_to_u16()?;
-        Ok(match (data & 0b1000_0000_0000_0000u16) == 1 {
-            true => TimeScale::TicksPerQuarterNote(data),
-            false => TimeScale::SMPTECompatible(((data & 0b1111_1111_0000_0000) >> 8) as i8, (data & 0b0000_0000_1111_1111) as u8), // Unsure if the "as i8" here will work properly...
-        })
+        Ok(
+            if (data & 0b1000_0000_0000_0000u16) == 0b1000_0000_0000_0000u16 {
+                TimeScale::SMPTECompatible(
+                    ((data & 0b1111_1111_0000_0000) >> 8) as i8,
+                    (data & 0b0000_0000_1111_1111) as u8,
+                ) // Unsure if the "as i8" here will work properly...
+            } else {
+                TimeScale::TicksPerQuarterNote(data)
+            },
+        )
     }
 
     /// Writes the Timing Information inside MThd
