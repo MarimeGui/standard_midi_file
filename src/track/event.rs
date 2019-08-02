@@ -4,22 +4,34 @@ use crate::Result;
 use ez_io::{ReadE, WriteE};
 use std::io::{Read, Seek, SeekFrom, Write};
 
+/// An Event in a TrackEvent inside a Track of a MIDI File.
+/// This particular implementation puts all the MIDI, SysEx and Meta Events in a single place for convenience.
 #[derive(Clone)]
 pub enum Event {
+    /// Stops the sound of a currently active note
     NoteOff(NoteChange),
+    /// Starts the sound of a note
     NoteOn(NoteChange),
     PolyphonicKeyPressure(PolyphonicKeyPressure),
+    /// Changes a specific value in the MIDI Controller.
     ControllerChange(ControllerChange),
+    /// Changes the program for this Channel. A Program defines of the channel will sound.
     ProgramChange(ProgramChange),
     ChannelPressure(ChannelPressure),
+    /// Changes the pitch of every note on a MIDI Channel
     PitchBend(PitchBend),
     SystemExclusiveF0(SystemExclusive),
     SystemExclusiveF7(SystemExclusive),
     SequenceNumber(SequenceNumber),
+    /// Generic Text within the MIDI File. Some more specific events exists for better classifying a message.
     Text(TextMessage),
+    /// Copyright information on the current song
     Copyright(TextMessage),
+    /// Name of the song
     SequenceTrackName(TextMessage),
+    /// Human readable name of the instrument playing on this track
     InstrumentName(TextMessage),
+    /// Lyrics that follows the song. For better results, each syllable must be separated into its own event.
     Lyric(TextMessage),
     Marker(TextMessage),
     CuePoint(TextMessage),
@@ -27,12 +39,15 @@ pub enum Event {
     DeviceName(TextMessage),
     MIDIChannelPrefix(MIDIChannelPrefix),
     MIDIPort(MIDIPort),
+    /// Marks the end of a track, obligatory.
     EndOfTrack(EndOfTrack),
+    /// Specifies the Tempo for all tracks in Microseconds per Quarter Note
     Tempo(Tempo),
     SMPTEOffset(SMPTEOffset),
     TimeSignature(TimeSignature),
     KeySignature(KeySignature),
     SequencerSpecificEvent(GenericMetaEvent),
+    /// When a Meta Event is present but its meaning is Unknown
     UnknownMetaEvent(GenericMetaEvent),
 }
 
@@ -81,6 +96,13 @@ impl Event {
                     7 => Event::CuePoint(TextMessage::import(reader)?),
                     8 => Event::ProgramName(TextMessage::import(reader)?),
                     9 => Event::DeviceName(TextMessage::import(reader)?),
+                    0x20 => Event::MIDIChannelPrefix(MIDIChannelPrefix::import(reader)?),
+                    0x21 => Event::MIDIPort(MIDIPort::import(reader)?),
+                    0x2F => Event::EndOfTrack(EndOfTrack::import(reader)?),
+                    0x51 => Event::Tempo(Tempo::import(reader)?),
+                    0x54 => Event::SMPTEOffset(SMPTEOffset::import(reader)?),
+                    0x58 => Event::TimeSignature(TimeSignature::import(reader)?),
+                    0x59 => Event::KeySignature(KeySignature::import(reader)?),
                     _ => Event::UnknownMetaEvent(GenericMetaEvent::import(reader)?),
                 },
                 _ => return Err(SMFError::UnknownEvent(code_byte)),
