@@ -53,6 +53,29 @@ impl VLV {
         }
     }
 
+    /// Read a VLV using a first byte as a parameter and the rest from the Reader
+    pub fn partial_import<R: Read>(reader: &mut R, first_byte: u8) -> Result<VLV> {
+        // Count the length of this VLV
+        let mut real_length = 0;
+        // The Value represented by the VLV
+        let mut value = 0u32;
+        // Initialize the Code Byte value as the first byte
+        let mut code_byte = first_byte;
+
+        loop {
+            real_length += 1;
+            if real_length > 4 {
+                return Err(SMFError::VLV(VLVError::VLVTooBig));
+            }
+            value <<= 7;
+            value |= u32::from(code_byte & 0b0111_1111);
+            if (code_byte & 0b1000_0000u8) == 0 {
+                return Ok(VLV { value });
+            }
+            code_byte = reader.read_to_u8()?;
+        }
+    }
+
     /// Writes a VLV to a file
     pub fn export<W: Write>(self, writer: &mut W) -> Result<()> {
         // Calc real length
