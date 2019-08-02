@@ -5,6 +5,8 @@ pub enum SMFError {
     IO(std::io::Error),
     /// Something went wrong with a VLV
     VLV(VLVError),
+    /// Unknown Format in MThd
+    UnknownFormat(u16),
 }
 
 impl std::fmt::Display for SMFError {
@@ -12,6 +14,7 @@ impl std::fmt::Display for SMFError {
         match self {
             SMFError::IO(ref e) => e.fmt(f),
             SMFError::VLV(ref e) => e.fmt(f),
+            SMFError::UnknownFormat(ref e) => write!(f, "Found unknown format in MThd: {}", e),
         }
     }
 }

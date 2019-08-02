@@ -2,9 +2,7 @@ use crate::Result;
 use std::io::{Read, Write};
 
 #[derive(Clone)]
-pub struct SMFTrack {
-
-}
+pub struct SMFTrack {}
 
 impl SMFTrack {
     pub fn import<R: Read>(reader: &mut R) -> Result<SMFTrack> {
