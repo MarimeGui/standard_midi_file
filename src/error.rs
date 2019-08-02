@@ -15,6 +15,8 @@ pub enum SMFError {
     UnknownFormat(u16),
     /// Header reports 0 tracks
     NoTracks,
+    /// Reported number of tracks and real amount of tracks do not match
+    VecHeaderTracksMismatch(u16, usize),
 }
 
 impl std::fmt::Display for SMFError {
@@ -28,6 +30,7 @@ impl std::fmt::Display for SMFError {
             }
             SMFError::UnknownFormat(ref e) => write!(f, "Found unknown format in MThd: {}", e),
             SMFError::NoTracks => write!(f, "MThd chunk reports 0 tracks"),
+            SMFError::VecHeaderTracksMismatch(ref e, ref g) => write!(f, "Amount of tracks reported in header and number of tracks in Vec do not match: Header {}, Vec: {}", e, g)
         }
     }
 }
