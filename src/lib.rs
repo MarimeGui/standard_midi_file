@@ -9,3 +9,28 @@ type Result<T> = std::result::Result<T, error::SMFError>;
 pub mod error;
 /// Stuff for Reading/Creating VLVs
 pub mod vlv;
+/// SMF Header
+pub mod header;
+/// SMF Track
+pub mod track;
+
+use header::SMFHeader;
+use track::SMFTrack;
+use std::io::{Read, Write};
+
+/// The Primary type for this crate. This is the primary way to Import and Export MIDI Files and manipulate them.
+#[derive(Clone)]
+pub struct SMF {
+    pub header: SMFHeader,
+    pub tracks: Vec<SMFTrack>,
+}
+
+impl SMF {
+    pub fn import<R: Read>(reader: &mut R) -> Result<SMF> {
+        unimplemented!();
+    }
+
+    pub fn export<W: Write>(writer: &mut W) -> Result<()> {
+        unimplemented!();
+    }
+}
