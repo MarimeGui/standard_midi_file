@@ -52,6 +52,41 @@ pub enum Event {
 }
 
 impl Event {
+    /// Returns the length in bytes of this event, everything taken into account.
+    pub fn get_length(&self) -> Result<u32> {
+        Ok(match self {
+            Event::NoteOff(n) => n.get_length(),
+            Event::NoteOn(n) => n.get_length(),
+            Event::PolyphonicKeyPressure(p) => p.get_length(),
+            Event::ControllerChange(c) => c.get_length(),
+            Event::ProgramChange(p) => p.get_length(),
+            Event::ChannelPressure(c) => c.get_length(),
+            Event::PitchBend(p) => p.get_length(),
+            Event::SystemExclusiveF0(s) => s.get_length()?,
+            Event::SystemExclusiveF7(s) => s.get_length()?,
+            Event::SequenceNumber(s) => s.get_length(),
+            Event::Text(t) => t.get_length()?,
+            Event::Copyright(c) => c.get_length()?,
+            Event::SequenceTrackName(s) => s.get_length()?,
+            Event::InstrumentName(i) => i.get_length()?,
+            Event::Lyric(l) => l.get_length()?,
+            Event::Marker(m) => m.get_length()?,
+            Event::CuePoint(c) => c.get_length()?,
+            Event::ProgramName(p) => p.get_length()?,
+            Event::DeviceName(d) => d.get_length()?,
+            Event::MIDIChannelPrefix(m) => m.get_length(),
+            Event::MIDIPort(m) => m.get_length(),
+            Event::EndOfTrack(e) => e.get_length(),
+            Event::Tempo(t) => t.get_length(),
+            Event::SMPTEOffset(s) => s.get_length(),
+            Event::TimeSignature(t) => t.get_length(),
+            Event::KeySignature(k) => k.get_length(),
+            Event::SequencerSpecificEvent(s) => s.get_length()?,
+            Event::UnknownMetaEvent(u) => u.get_length()?,
+        })
+    }
+
+    /// Read an event from a binary file
     pub fn import<R: Read + Seek>(
         reader: &mut R,
         previous_code_byte: Option<u8>,
@@ -111,6 +146,8 @@ impl Event {
         };
         Ok((new_event, code_byte))
     }
+
+    /// Write the event in its binary form
     pub fn export<W: Write>(&self, writer: &mut W) -> Result<()> {
         unimplemented!();
     }
@@ -126,6 +163,9 @@ pub struct NoteChange {
 }
 
 impl NoteChange {
+    pub fn get_length(self) -> u32 {
+        3
+    }
     pub fn import<R: Read>(reader: &mut R, code_byte: u8, next_byte: u8) -> Result<NoteChange> {
         let channel = code_byte & 0b0000_1111;
         let key = next_byte;
@@ -146,6 +186,9 @@ pub struct PolyphonicKeyPressure {
 }
 
 impl PolyphonicKeyPressure {
+    pub fn get_length(self) -> u32 {
+        3
+    }
     pub fn import<R: Read>(
         reader: &mut R,
         code_byte: u8,
@@ -170,6 +213,9 @@ pub struct ControllerChange {
 }
 
 impl ControllerChange {
+    pub fn get_length(self) -> u32 {
+        3
+    }
     pub fn import<R: Read>(
         reader: &mut R,
         code_byte: u8,
@@ -193,6 +239,9 @@ pub struct ProgramChange {
 }
 
 impl ProgramChange {
+    pub fn get_length(self) -> u32 {
+        2
+    }
     pub fn import(code_byte: u8, next_byte: u8) -> ProgramChange {
         let channel = code_byte & 0b0000_1111;
         let program = next_byte;
@@ -207,6 +256,9 @@ pub struct ChannelPressure {
 }
 
 impl ChannelPressure {
+    pub fn get_length(self) -> u32 {
+        2
+    }
     pub fn import(code_byte: u8, next_byte: u8) -> ChannelPressure {
         let channel = code_byte & 0b0000_1111;
         let pressure = next_byte;
@@ -221,6 +273,9 @@ pub struct PitchBend {
 }
 
 impl PitchBend {
+    pub fn get_length(self) -> u32 {
+        3
+    }
     pub fn import<R: Read>(reader: &mut R, code_byte: u8, next_byte: u8) -> Result<PitchBend> {
         let channel = code_byte & 0b0000_1111;
         let value = u16::from(reader.read_to_u8()?) << 8 | u16::from(next_byte); // Little Endian here, confirmed by two websites... Weird
@@ -237,6 +292,9 @@ pub struct SystemExclusive {
 }
 
 impl SystemExclusive {
+    pub fn get_length(&self) -> Result<u32> {
+        Ok(1 + u32::from(self.length.get_length()?) + self.data.len() as u32)
+    }
     pub fn import<R: Read>(reader: &mut R, next_byte: u8) -> Result<SystemExclusive> {
         let length = VLV::partial_import(reader, next_byte)?;
         let mut data = vec![0u8; length.value as usize];
@@ -253,6 +311,9 @@ pub struct SequenceNumber {
 }
 
 impl SequenceNumber {
+    pub fn get_length(self) -> u32 {
+        5
+    }
     pub fn import<R: Read + Seek>(reader: &mut R) -> Result<SequenceNumber> {
         // Read VLV
         let length = VLV::import(reader)?;
@@ -277,6 +338,9 @@ pub struct TextMessage {
 }
 
 impl TextMessage {
+    pub fn get_length(&self) -> Result<u32> {
+        Ok(2 + u32::from(self.length.get_length()?) + self.text.len() as u32)
+    }
     pub fn import<R: Read>(reader: &mut R) -> Result<TextMessage> {
         let length = VLV::import(reader)?;
         let mut data = vec![0u8; length.value as usize];
@@ -292,6 +356,9 @@ pub struct MIDIChannelPrefix {
 }
 
 impl MIDIChannelPrefix {
+    pub fn get_length(self) -> u32 {
+        4
+    }
     pub fn import<R: Read + Seek>(reader: &mut R) -> Result<MIDIChannelPrefix> {
         // Read VLV
         let length = VLV::import(reader)?;
@@ -315,6 +382,9 @@ pub struct MIDIPort {
 }
 
 impl MIDIPort {
+    pub fn get_length(self) -> u32 {
+        4
+    }
     pub fn import<R: Read + Seek>(reader: &mut R) -> Result<MIDIPort> {
         // Read VLV
         let length = VLV::import(reader)?;
@@ -336,6 +406,9 @@ impl MIDIPort {
 pub struct EndOfTrack {}
 
 impl EndOfTrack {
+    pub fn get_length(self) -> u32 {
+        3
+    }
     pub fn import<R: Read + Seek>(reader: &mut R) -> Result<EndOfTrack> {
         // Read VLV
         let length = VLV::import(reader)?;
@@ -353,6 +426,9 @@ pub struct Tempo {
 }
 
 impl Tempo {
+    pub fn get_length(self) -> u32 {
+        6
+    }
     pub fn import<R: Read + Seek>(reader: &mut R) -> Result<Tempo> {
         // Read VLV
         let length = VLV::import(reader)?;
@@ -382,6 +458,9 @@ pub struct SMPTEOffset {
 }
 
 impl SMPTEOffset {
+    pub fn get_length(self) -> u32 {
+        8
+    }
     pub fn import<R: Read + Seek>(reader: &mut R) -> Result<SMPTEOffset> {
         // Read VLV
         let length = VLV::import(reader)?;
@@ -418,6 +497,9 @@ pub struct TimeSignature {
 }
 
 impl TimeSignature {
+    pub fn get_length(self) -> u32 {
+        7
+    }
     pub fn import<R: Read + Seek>(reader: &mut R) -> Result<TimeSignature> {
         // Read VLV
         let length = VLV::import(reader)?;
@@ -450,6 +532,9 @@ pub struct KeySignature {
 }
 
 impl KeySignature {
+    pub fn get_length(self) -> u32 {
+        5
+    }
     pub fn import<R: Read + Seek>(reader: &mut R) -> Result<KeySignature> {
         // Read VLV
         let length = VLV::import(reader)?;
@@ -500,6 +585,9 @@ pub struct GenericMetaEvent {
 }
 
 impl GenericMetaEvent {
+    pub fn get_length(&self) -> Result<u32> {
+        Ok(2 + u32::from(self.length.get_length()?) + self.data.len() as u32)
+    }
     pub fn import<R: Read>(reader: &mut R) -> Result<GenericMetaEvent> {
         let length = VLV::import(reader)?;
         let mut data = vec![0u8; length.value as usize];

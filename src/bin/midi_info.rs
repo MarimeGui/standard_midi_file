@@ -1,28 +1,28 @@
-extern crate standard_midi_file;
 extern crate clap;
+extern crate standard_midi_file;
 
 use clap::{App, Arg};
-use std::path::Path;
-use standard_midi_file::SMF;
 use standard_midi_file::header::TimeScale;
 use standard_midi_file::track::event::Event;
-use std::io::BufReader;
-use std::fs::File;
-use std::collections::{HashSet, HashMap};
+use standard_midi_file::SMF;
 use std::cmp::max;
+use std::collections::{HashMap, HashSet};
+use std::fs::File;
+use std::io::BufReader;
+use std::path::Path;
 
 pub fn main() {
     let matches = App::new("Basic MIDI Info")
-    .version("0.1")
-    .author("Marime Gui")
-    .about("Prints a few useful pieces of information about a .mid file")
-    .arg(
-        Arg::with_name("INPUT")
-            .help("Input .mid file")
-            .required(true)
-            .index(1),
-    )
-    .get_matches();
+        .version("0.1")
+        .author("Marime Gui")
+        .about("Prints a few useful pieces of information about a .mid file")
+        .arg(
+            Arg::with_name("INPUT")
+                .help("Input .mid file")
+                .required(true)
+                .index(1),
+        )
+        .get_matches();
 
     let input_str = matches.value_of("INPUT").unwrap();
     let input_path = Path::new(input_str);
@@ -74,7 +74,10 @@ pub fn main() {
             }
         }
         longest_time = max(longest_time, time);
-        println!("{} Real Note Ons, {} Fake Note Offs, {} Actual Note Offs", note_full_on, note_fake_on, note_off);
+        println!(
+            "{} Real Note Ons, {} Fake Note Offs, {} Actual Note Offs",
+            note_full_on, note_fake_on, note_off
+        );
         println!("Channels: {:?}", channels);
         println!("{} Unknown Meta Events", unk_meta);
     }

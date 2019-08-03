@@ -55,7 +55,10 @@ impl SMFTrack {
 
     /// Writes a MTrk chunk to a MIDI File
     pub fn export<W: Write>(&self, writer: &mut W) -> Result<()> {
+        writer.write_all(&[b'M', b'T', b'r', b'k'])?;
+        writer.write_be_to_u32(self.length)?;
         unimplemented!();
+        // Ok(())
     }
 }
 
@@ -69,6 +72,10 @@ pub struct TrackEvent {
 }
 
 impl TrackEvent {
+    /// Get the total length in bytes of this Track Event
+    pub fn get_length(&self) -> Result<u32> {
+        Ok(u32::from(self.delta_time.get_length()?) + self.event.get_length()?)
+    }
     /// Reads the Delta Time and the associated event.
     pub fn import<R: Read + Seek>(
         reader: &mut R,

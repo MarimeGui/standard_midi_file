@@ -33,6 +33,11 @@ impl VLV {
         Ok(VLV { value })
     }
 
+    /// Returns the length in bytes of the encoded VLV
+    pub fn get_length(self) -> Result<u8> {
+        calc_vlv_length(self.value)
+    }
+
     /// Read a VLV from a file
     pub fn import<R: Read>(reader: &mut R) -> Result<VLV> {
         // Count the length of this VLV
